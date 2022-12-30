@@ -2,10 +2,16 @@ import pandas as pd
 
 
 def train_alert_process_func(data, custinfo, train_alert_time, predict_alert_time, y):
-    alert_data = data[data['cust_id'].isin(custinfo[custinfo['alert_key'].isin(predict_alert_time['alert_key'].tolist())]['cust_id'].tolist())]
-    train_data = data[data['cust_id'].isin(custinfo[custinfo['alert_key'].isin(train_alert_time['alert_key'].tolist())]['cust_id'].tolist())]
+    alert_data = data[data['cust_id'].isin(
+        custinfo[custinfo['alert_key'].isin(
+            predict_alert_time['alert_key'].tolist())]['cust_id'].tolist())]
+    train_data = data[data['cust_id'].isin(
+        custinfo[custinfo['alert_key'].isin(
+            train_alert_time['alert_key'].tolist())]['cust_id'].tolist())]
     train_data['y'] = 0
-    sar_idx = train_data[train_data['cust_id'].isin(custinfo[custinfo['alert_key'].isin(y[y['sar_flag']==1]['alert_key'].tolist())]['cust_id'].tolist())].index
+    sar_idx = train_data[train_data['cust_id'].isin(
+        custinfo[custinfo['alert_key'].isin(
+            y[y['sar_flag'] == 1]['alert_key'].tolist())]['cust_id'].tolist())].index
     train_data.loc[sar_idx, 'y'] = 1
     return train_data, alert_data
 
@@ -13,19 +19,19 @@ def train_alert_process_func(data, custinfo, train_alert_time, predict_alert_tim
 def train_prev_d(x, day):
     prev_d = x.groupby('cust_id')['tx_date'].max() - day
     prev_d = prev_d.reset_index()
-    prev_d.rename(columns={'tx_date':'prev_d'}, inplace=True)
+    prev_d.rename(columns={'tx_date': 'prev_d'}, inplace=True)
     x = x.merge(prev_d, on='cust_id', how='left')
-    x.drop(x[x['tx_date']<x['prev_d']].index,inplace=True)
+    x.drop(x[x['tx_date'] < x['prev_d']].index, inplace=True)
     x.pop('prev_d')
     return x
 
 
-#特徵前處理
 def preprocess(data):
+    """特徵前處理"""
     dict1 = {}
     idx = 0
     num = 0
-    for i in range(0,426,1):
+    for i in range(0, 426, 1):
         dict1[i] = str(idx)
         num += 1
         if num == 7:
@@ -36,17 +42,17 @@ def preprocess(data):
     data['date_cust_id'] = data.tx_date.astype(str) + data.cust_id
     data['date_time_cust_id'] = data.tx_date.astype(str) + data.tx_date.astype(str) + data.cust_id
     data['tx_year'] = 2021
-    data['tx_date_formal'] = data['tx_date']+1
-    data.loc[data[data['tx_date_formal']>365].index,'tx_year'] = 2022
-    data.loc[data[data['tx_date_formal']>365].index, 'tx_date_formal'] = \
-    data.loc[data[data['tx_date_formal']>365].index, 'tx_date_formal'] -365
-    data["tx_date_formal"] = data["tx_year"]*1000 + data["tx_date_formal"]
+    data['tx_date_formal'] = data['tx_date'] + 1
+    data.loc[data[data['tx_date_formal'] > 365].index, 'tx_year'] = 2022
+    data.loc[data[data['tx_date_formal'] > 365].index, 'tx_date_formal'] = \
+    data.loc[data[data['tx_date_formal'] > 365].index, 'tx_date_formal'] - 365
+    data["tx_date_formal"] = data["tx_year"] * 1000 + data["tx_date_formal"]
     data['tx_date_formal'] = pd.to_datetime(data['tx_date_formal'], format="%Y%j")
     return data
 
 
 def dp_feature_func(data):
-    session_amt_diff = data.groupby(['session_cust_id','debit_credit'])['tx_amt'].sum().reset_index()
+    session_amt_diff = data.groupby(['session_cust_id', 'debit_credit'])['tx_amt'].sum().reset_index()
     session_amt_diff = pd.pivot_table(session_amt_diff, index='session_cust_id', columns='debit_credit', values='tx_amt')
     session_amt_diff.fillna(1, inplace=True)
     session_amt_diff['session_amt_diff_ratio'] = \
@@ -54,15 +60,15 @@ def dp_feature_func(data):
     session_amt_diff = session_amt_diff.reset_index()[['session_cust_id','session_amt_diff_ratio']]
     data = data.merge(session_amt_diff, on='session_cust_id', how='left')
     #當日 交易差額比率
-    date_amt_diff = data.groupby(['date_cust_id','debit_credit'])['tx_amt'].sum().reset_index()
+    date_amt_diff = data.groupby(['date_cust_id', 'debit_credit'])['tx_amt'].sum().reset_index()
     date_amt_diff = pd.pivot_table(date_amt_diff, index='date_cust_id', columns='debit_credit', values='tx_amt')
     date_amt_diff.fillna(1, inplace=True)
     date_amt_diff['date_amt_diff_ratio'] = \
     abs(date_amt_diff['CR'] - date_amt_diff['DB']) / abs(date_amt_diff['CR'] + date_amt_diff['DB'])
-    date_amt_diff = date_amt_diff.reset_index()[['date_cust_id','date_amt_diff_ratio']]
+    date_amt_diff = date_amt_diff.reset_index()[['date_cust_id', 'date_amt_diff_ratio']]
     data = data.merge(date_amt_diff, on=['date_cust_id'], how='left')
     #當時 交易差額比率
-    date_time_amt_diff = data.groupby(['date_time_cust_id','debit_credit'])['tx_amt'].sum().reset_index()
+    date_time_amt_diff = data.groupby(['date_time_cust_id', 'debit_credit'])['tx_amt'].sum().reset_index()
     date_time_amt_diff = pd.pivot_table(date_time_amt_diff, index='date_time_cust_id', columns='debit_credit', values='tx_amt')
     date_time_amt_diff.fillna(1, inplace=True)
     date_time_amt_diff['date_time_amt_diff_ratio'] = \

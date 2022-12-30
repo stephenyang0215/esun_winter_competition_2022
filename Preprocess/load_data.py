@@ -1,4 +1,4 @@
-import pandas as pd 
+import pandas as pd
 
 
 def load_trainset(folder):
@@ -44,4 +44,3 @@ def create_dataset(folder):
     predict_alert_time = train_alert_time_private.copy()
     y = y[~y.alert_key.isin(predict_alert_time.alert_key)].reset_index(drop=True)
     return custinfo, dp, train_alert_time, predict_alert_time, y
-
