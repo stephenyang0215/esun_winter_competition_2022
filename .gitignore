@@ -1,5 +1,8 @@
 # Byte-compiled / optimized / DLL files
 __pycache__/
+# jupyter notebook
+*.ipynb
+.ipynb_checkpoints/
 # files
 *.csv
 # catboost
