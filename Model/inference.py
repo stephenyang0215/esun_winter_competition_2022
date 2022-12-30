@@ -1,6 +1,7 @@
 from Model.train import mapping
 import pandas as pd
 
+
 def all_txn_cnt(data):
   all_txn_cnt = data.groupby('cust_id')['tx_date'].count().rename('all_txn_cnt').reset_index()
   data = data.merge(all_txn_cnt, on='cust_id', how='left')
@@ -65,9 +66,13 @@ def alert_output(alert, model_1, model_2, alert_col, result_col, doc, predict_al
   return final_answer, alert_result
 
 
-def create_final_output(alert_dp, dp_model_1, dp_model_2, dp_col, dp_result_col, doc, custinfo, predict_alert_time):
-  dp_final, _ = alert_output(alert_dp, dp_model_1, dp_model_2, dp_col, dp_result_col, doc, predict_alert_time, custinfo)
-  dp_final['probability'] = dp_final[['probability1', 'probability2', 'probability4', 'probability6']].min(axis=1)
+def create_final_output(alert_dp, dp_model_1, dp_model_2, dp_col, dp_result_col,
+                        doc, custinfo, predict_alert_time):
+  """create submission file"""
+  dp_final, _ = alert_output(alert_dp, dp_model_1, dp_model_2, dp_col, dp_result_col,
+                             doc, predict_alert_time, custinfo)
+  dp_final['probability'] = dp_final[['probability1', 'probability2', 
+                                      'probability4', 'probability6']].min(axis=1)
   dp_final2 = alert_key_fill_value(dp_final, custinfo, predict_alert_time, value = 0.1)
   final = doc[['alert_key']].merge(dp_final2, on='alert_key', how='left')
   final = final.fillna(0)

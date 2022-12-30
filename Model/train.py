@@ -61,9 +61,10 @@ def result_preprocess_func(data, X, model):
     result = result.merge(data_db_cr_ratio, on='cust_id', how='left')
     result = result.merge(data_all_txn_cnt, on='cust_id', how='left')
     return result
-#model training 2
-#歸戶判斷是否報SAR
+
+
 def model_training_2(result):
+    """歸戶判斷是否報SAR"""
     result_col = list(result.columns)
     result_col.remove('cust_id')
     result_col.remove('y')
@@ -85,12 +86,14 @@ def model_training_2(result):
 
 
 def training(train_dp):
-    dp_col = ['cust_id','session_amt_diff_ratio', 
-            'date_time_amt_diff_ratio','tx_cnt_date_time','txbranch_day_time_cnt', 'day_time_atm_txn_ratio','day_time_cross_bank_ratio',
-            'date_amt_diff_ratio','tx_cnt_date','txbranch_day_cnt','day_atm_txn_ratio','day_cross_bank_ratio',#(version : original)
-            'time_diff',
-            'y']
-    dp_X, dp_model_1, dp_feature_importance = model_training_1(train_dp, dp_col)
+    """訓練model1 & model2"""
+    dp_col = ['cust_id','session_amt_diff_ratio',
+              'date_time_amt_diff_ratio','tx_cnt_date_time',
+              'txbranch_day_time_cnt', 'day_time_atm_txn_ratio',
+              'day_time_cross_bank_ratio', 'date_amt_diff_ratio',
+              'tx_cnt_date','txbranch_day_cnt','day_atm_txn_ratio',
+              'day_cross_bank_ratio', 'time_diff', 'y']
+    dp_X, dp_model_1, _ = model_training_1(train_dp, dp_col)
     dp_result = result_preprocess_func(train_dp, dp_X, dp_model_1)
     dp_col.remove('y')
     dp_col.remove('cust_id')
