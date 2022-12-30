@@ -17,6 +17,7 @@ def train_alert_process_func(data, custinfo, train_alert_time, predict_alert_tim
 
 
 def train_prev_d(x, day):
+    # 以該筆資料往前推day=30天作為model1訓練集
     prev_d = x.groupby('cust_id')['tx_date'].max() - day
     prev_d = prev_d.reset_index()
     prev_d.rename(columns={'tx_date': 'prev_d'}, inplace=True)
