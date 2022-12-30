@@ -12,6 +12,7 @@ from .model_cfg import model_cfg
 
 def model_training_1(data, columns):
     """逐筆交易處理"""
+    # 僅以DP製作12個特徵來預測
     Y = data['y']
     X = data[columns[1:-1]]
     model = XGBClassifier(**model_cfg['xgb1'])
