@@ -3,13 +3,14 @@ import pandas as pd
 
 
 def all_txn_cnt(data):
+  # 總交易次數
   all_txn_cnt = data.groupby('cust_id')['tx_date'].count().rename('all_txn_cnt').reset_index()
   data = data.merge(all_txn_cnt, on='cust_id', how='left')
   return all_txn_cnt
 
 
 def debit_credit_ratio_func(data):
-  #id
+  # DB占比
   debit_credit_ratio = data.groupby(['cust_id'])['debit_credit'].value_counts().rename('debit_credit_ratio').reset_index()
   debit_credit_ratio = debit_credit_ratio.pivot_table(values='debit_credit_ratio', index=['cust_id'], columns='debit_credit')
   debit_credit_ratio.fillna(0, inplace=True)
@@ -20,6 +21,7 @@ def debit_credit_ratio_func(data):
 
 
 def alert_key_fill_value(dp_final, custinfo, predict_alert_time, value = 0.1):
+  # 補值：以最後一個date預測機率，前一個則乘上value=0.1的倍數，前兩個則乘上0.01，以此類推
   test = dp_final.merge(custinfo.merge(predict_alert_time)[['alert_key','cust_id','date']], how='left').sort_values(['cust_id','date'],ascending=False)
   test = test[~test['cust_id'].isnull()]
   test_level = test.merge(test[['cust_id','date']].drop_duplicates().groupby('cust_id').apply(lambda x: x['date'].reset_index(drop=True)).reset_index(), how='left')
@@ -53,6 +55,7 @@ def alert_output(alert, model_1, model_2, alert_col, result_col, doc, predict_al
   result_col = [str(i) for i in result_col]
   alert_result.columns = [str(i) for i in alert_result.columns]
   final_answer = pd.DataFrame(doc[['alert_key']])
+  # predict 6 models probability
   for model in model_2:
       alert_pred = model.predict_proba(alert_result[result_col])
       # evaluate predictions
@@ -69,6 +72,7 @@ def alert_output(alert, model_1, model_2, alert_col, result_col, doc, predict_al
 def create_final_output(alert_dp, dp_model_1, dp_model_2, dp_col, dp_result_col,
                         doc, custinfo, predict_alert_time):
   """create submission file"""
+  # 只取四個model的預測值做最保守的預測（min）
   dp_final, _ = alert_output(alert_dp, dp_model_1, dp_model_2, dp_col, dp_result_col,
                              doc, predict_alert_time, custinfo)
   dp_final['probability'] = dp_final[['probability1', 'probability2', 
