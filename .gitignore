@@ -2,3 +2,5 @@
 __pycache__/
 # files
 *.csv
+# catboost
+catboost_info/
