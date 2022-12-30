@@ -1,7 +1,22 @@
-from Model.train import mapping, alert_dp, dp_model_1, dp_model_2, dp_col, dp_result_col
-from Preprocess.preprocess import all_txn_cnt, debit_credit_ratio_func
-from Preprocess.load_data import predict_alert_time, custinfo, doc
+from Model.train import mapping
 import pandas as pd
+
+def all_txn_cnt(data):
+  all_txn_cnt = data.groupby('cust_id')['tx_date'].count().rename('all_txn_cnt').reset_index()
+  data = data.merge(all_txn_cnt, on='cust_id', how='left')
+  return all_txn_cnt
+
+
+def debit_credit_ratio_func(data):
+  #id
+  debit_credit_ratio = data.groupby(['cust_id'])['debit_credit'].value_counts().rename('debit_credit_ratio').reset_index()
+  debit_credit_ratio = debit_credit_ratio.pivot_table(values='debit_credit_ratio', index=['cust_id'], columns='debit_credit')
+  debit_credit_ratio.fillna(0, inplace=True)
+  debit_credit_ratio['debit_credit_ratio'] = debit_credit_ratio['DB']/debit_credit_ratio.sum(axis=1)
+  debit_credit_ratio = debit_credit_ratio.reset_index()[['cust_id','debit_credit_ratio']]
+  data = data.merge(debit_credit_ratio, on=['cust_id'], how='left')
+  return debit_credit_ratio
+
 
 def alert_key_fill_value(dp_final, custinfo, predict_alert_time, value = 0.1):
   test = dp_final.merge(custinfo.merge(predict_alert_time)[['alert_key','cust_id','date']], how='left').sort_values(['cust_id','date'],ascending=False)
@@ -15,10 +30,10 @@ def alert_key_fill_value(dp_final, custinfo, predict_alert_time, value = 0.1):
   dp_final = dp_final[['alert_key', 'probability']]
   return dp_final
 
-def alert_output(alert, model_1, model_2, alert_col, result_col, doc):
+
+def alert_output(alert, model_1, model_2, alert_col, result_col, doc, predict_alert_time, custinfo):
   data_db_cr_ratio = debit_credit_ratio_func(alert)
   data_all_txn_cnt = all_txn_cnt(alert)
-
   #Remit Submission
   alert_data = alert
   alert_data['proba'] = model_1.predict_proba(alert[alert_col])[:,1]
@@ -42,18 +57,18 @@ def alert_output(alert, model_1, model_2, alert_col, result_col, doc):
       # evaluate predictions
       alert_result_cust_id = alert_result[['cust_id']]
       alert_result_cust_id['probability'] = alert_pred[:,1]
-
       final = predict_alert_time.merge(custinfo[['alert_key', 'cust_id']].merge(alert_result_cust_id, on='cust_id'), on='alert_key', how='left')[['alert_key', 'probability']]
       doc = doc[['alert_key']]
       final = doc.merge(final, on='alert_key', how='left')
-#       final.fillna(0,inplace=True)
-#       final.loc[final[final['alert_key'].isin(prev_list)].index,'probability']=0
       final_answer = final_answer.merge(final, on='alert_key', how='left')
   final_answer.columns = ['alert_key', 'probability1', 'probability2', 'probability3', 'probability4', 'probability5', 'probability6']
   return final_answer, alert_result
 
-dp_final, alert_dp_result = alert_output(alert_dp, dp_model_1, dp_model_2, dp_col, dp_result_col, doc)
-dp_final['probability'] = dp_final[['probability1', 'probability2', 'probability4', 'probability6']].min(axis=1)
-dp_final2 = alert_key_fill_value(dp_final, custinfo, predict_alert_time, value = 0.1)
-final = doc[['alert_key']].merge(dp_final2, on='alert_key', how='left')
-final = final.fillna(0)
+
+def create_final_output(alert_dp, dp_model_1, dp_model_2, dp_col, dp_result_col, doc, custinfo, predict_alert_time):
+  dp_final, _ = alert_output(alert_dp, dp_model_1, dp_model_2, dp_col, dp_result_col, doc, predict_alert_time, custinfo)
+  dp_final['probability'] = dp_final[['probability1', 'probability2', 'probability4', 'probability6']].min(axis=1)
+  dp_final2 = alert_key_fill_value(dp_final, custinfo, predict_alert_time, value = 0.1)
+  final = doc[['alert_key']].merge(dp_final2, on='alert_key', how='left')
+  final = final.fillna(0)
+  return final
