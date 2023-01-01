@@ -12,7 +12,7 @@ def train_alert_process_func(data, custinfo, train_alert_time, predict_alert_tim
         y
     Returns:
         train_data,
-        lert_data
+        alert_data
     """
     alert_data = data[data['cust_id'].isin(
         custinfo[custinfo['alert_key'].isin(
