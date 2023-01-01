@@ -2,7 +2,21 @@ import pandas as pd
 
 
 def load_trainset(folder):
-    """load trainset (Public)"""
+    """load trainset (Public)
+
+    Args:
+        folder: 存放data的資料夾
+    Returns:
+        ccba_public
+        cdtx_public
+        custinfo_public
+        dp_public
+        remit_public
+        train_alert_time_public
+        predict_alert_time_public
+        y_public
+        answer_public
+    """
     ccba_public = pd.read_csv(rf'{folder}\public_train_x_ccba_full_hashed.csv')
     cdtx_public = pd.read_csv(rf'{folder}\public_train_x_cdtx0001_full_hashed.csv')
     custinfo_public = pd.read_csv(rf'{folder}\public_train_x_custinfo_full_hashed.csv')
@@ -16,7 +30,18 @@ def load_trainset(folder):
 
 
 def load_testset(folder):
-    """load testset (Privite)"""
+    """load testset (Privite)
+
+    Args:
+        folder: 存放data的資料夾
+    Returns:
+        ccba_private
+        cdtx_private
+        custinfo_private
+        dp_private
+        remit_private
+        train_alert_time_private
+    """
     ccba_private = pd.read_csv(rf'{folder}\private_x_ccba_full_hashed.csv')
     cdtx_private = pd.read_csv(rf'{folder}\private_x_cdtx0001_full_hashed.csv')
     custinfo_private = pd.read_csv(rf'{folder}\private_x_custinfo_full_hashed.csv')
@@ -27,13 +52,30 @@ def load_testset(folder):
 
 
 def load_doc(folder):
-    """load output example"""
+    """load output example
+
+    Args:
+        folder: 存放data的資料夾
+    Returns:
+        doc: 提交example
+    """
     doc = pd.read_csv(rf'{folder}\預測的案件名單及提交檔案範例.csv')
     return doc
 
 
 def create_dataset(folder):
-    """concat trainset and testset"""
+    """concat trainset and testset
+    合併訓練集和測試集
+
+    Args:
+        folder: 存放data的資料夾
+    Returns:
+        custinfo
+        dp
+        train_alert_time
+        predict_alert_time
+        y
+    """
     (_, _, custinfo_public, dp_public, _, train_alert_time_public,
      predict_alert_time_public, y_public, answer_public) = load_trainset(folder)
     _, _, custinfo_private, dp_private, _, train_alert_time_private = load_testset(folder)

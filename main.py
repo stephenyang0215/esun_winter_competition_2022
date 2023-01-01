@@ -1,3 +1,4 @@
+import pandas as pd
 from Preprocess.preprocess import create_features
 from Preprocess.load_data import create_dataset, load_doc
 from Model.train import training
