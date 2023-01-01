@@ -2,6 +2,18 @@ import pandas as pd
 
 
 def train_alert_process_func(data, custinfo, train_alert_time, predict_alert_time, y):
+    """處理train data & alert
+
+    Args:
+        data
+        custinfo
+        train_alert_time
+        predict_alert_time
+        y
+    Returns:
+        train_data,
+        lert_data
+    """
     alert_data = data[data['cust_id'].isin(
         custinfo[custinfo['alert_key'].isin(
             predict_alert_time['alert_key'].tolist())]['cust_id'].tolist())]
@@ -17,7 +29,14 @@ def train_alert_process_func(data, custinfo, train_alert_time, predict_alert_tim
 
 
 def train_prev_d(x, day):
-    # 以該筆資料往前推day=30天作為model1訓練集
+    """以該筆資料往前推day=30天作為model1訓練集
+
+    Args:
+        x
+        day
+    Returns:
+        x
+    """
     prev_d = x.groupby('cust_id')['tx_date'].max() - day
     prev_d = prev_d.reset_index()
     prev_d.rename(columns={'tx_date': 'prev_d'}, inplace=True)
@@ -28,7 +47,13 @@ def train_prev_d(x, day):
 
 
 def preprocess(data):
-    """特徵前處理"""
+    """特徵前處理
+
+    Args:
+        data
+    Returns:
+        data
+    """
     dict1 = {}
     idx = 0
     num = 0
@@ -53,6 +78,13 @@ def preprocess(data):
 
 
 def dp_feature_func(data):
+    """製作DP特徵
+
+    Args:
+        data
+    Returns:
+        data
+    """
     session_amt_diff = data.groupby(['session_cust_id', 'debit_credit'])['tx_amt'].sum().reset_index()
     session_amt_diff = pd.pivot_table(session_amt_diff, index='session_cust_id', columns='debit_credit', values='tx_amt')
     session_amt_diff.fillna(1, inplace=True)
@@ -141,6 +173,13 @@ def dp_feature_func(data):
 
 
 def prev_7d_feature_func(data):
+    """過去七天的特徵
+
+    Args:
+        data
+    Returns:
+        data
+    """
     #last 7 days processing
     data_distinct = data[['cust_id', 'tx_date_formal','tx_date']].drop_duplicates().reset_index(drop=True)
     cross_bank_sum = data.groupby(['cust_id','tx_date_formal'])['cross_bank'].sum().rename('cross_bank_sum').reset_index()
@@ -183,7 +222,19 @@ def prev_7d_feature_func(data):
 
 
 def create_features(custinfo, dp, train_alert_time, predict_alert_time, y , output_dir=None):
-    """feature engineering"""
+    """feature engineering
+
+    Args:
+        custinfo
+        dp
+        train_alert_time
+        predict_alert_time
+        y
+        output_dir=None: 若要輸出csv檔則填入輸出folder
+    Returns:
+        train_dp
+        alert_dp
+    """
     def _pipeline(data, days=30):
         data = (data
                 .pipe(train_prev_d, days)
