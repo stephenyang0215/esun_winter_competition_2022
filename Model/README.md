@@ -1,4 +1,4 @@
 # Model
-* train.py: 訓練模型
-* inference.py: 推論private set
-* model_cfg.py: 各model的參數
+* train.py: training model
+* inference.py: Private set of inference
+* model_cfg.py: model parameters
