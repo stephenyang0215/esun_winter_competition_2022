@@ -1,11 +1,11 @@
-# 檔案用途
-* Preprocess/: 存放前處理的code
-* Model/: 存放模型相關code
-* requirements.txt: 需要的套件
-* main.py: 執行整個訓練流程
-* test.py: 檢查function更新後的`output.csv`是否相同
-# 執行流程:
-### 安裝所需套件
+# File Purpose
+* Preprocess/: preprocessing code file
+* Model/: model artifact and code file
+* requirements.txt: packages dependencies
+* main.py: main file
+* test.py: check the updated function has the same output.csv
+# Process:
+### Install all packages
 `pip install -r requirements.txt` 
 ### training and inference
 `python main.py`
