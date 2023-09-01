@@ -1,3 +1,3 @@
 # Preprocess
-* load_data.py: 讀取`dataset`內的所有資料
+* load_data.py: extract the files from `dataset`
 * preprocess.py: feature engineering
