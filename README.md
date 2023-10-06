@@ -1,5 +1,5 @@
-Project Introduction:
-Suspicious Activity Report(SAR) is a standard form report in the financial industry to capture illegal activities relating to fraud, money laundering, and any kind of crimes involving finance activity. Related activities of trying to hide illegal transactions or financial crimes may cause records in the report. The common issue is the false alarms could possibly impede the investigation process. It comes with the opportunity to leverage ML model application to accelerate the operating process and reduce false alarms at the same time.   
+<h2>Project Introduction:</h2>
+Suspicious Activity Report(SAR) is a standard form report in the financial industry to capture illegal activities relating to fraud, money laundering, and any kind of crimes involving finance activity.<br />Related activities of trying to hide illegal transactions or financial crimes may cause records in the report.<br /> The common issue is the false alarms could possibly impede the investigation process. It comes with the opportunity to leverage ML model application to accelerate the operating process and reduce false alarms at the same time.   
 
 # File Purpose
 * Preprocess/: preprocessing code file
